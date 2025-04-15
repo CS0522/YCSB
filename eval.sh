@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+# set -x
 
 if [ $# != 8 ]; then
     echo "Usage: bash eval.sh phase workload rate suffix client_num mode shard_num replication_factor"
@@ -23,12 +23,18 @@ echo -e "\033[0;32m ${phase} ${workload} ${mode} \033[0m"
 replicator_port=50040
 shard_port=50050
 rubble_dir="/mnt/data/rocksdb/rubble"
+# add ssh args
+ssh_arg="-o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -Tq"
+
+# 添加 outputs 目录
+output_dir="/users/CS0522/outputs"
 
 ssh_with_retry()
 {
     local ip=$1
     local cmd=$2
-    until ssh ${USER}@${ip} "$cmd exit 0"
+    # add ssh arg
+    until ssh ${ssh_arg} ${USER}@${ip} "$cmd exit 0"
     do
         sleep 1
     done
@@ -169,10 +175,11 @@ process_results()
 {
 	start_cut=$1
 	end_cut=$2
+
     grep Throughput ycsb.out
-    cp ycsb.out ycsb-${suffix}.out
-    cp replicator.out replicator-${suffix}.out
-    python3 plot-thru.py ycsb-${suffix}.out 10 ${start_cut} ${end_cut}
+    cp ycsb.out ${output_dir}/ycsb-${suffix}.out
+    cp replicator.out ${output_dir}/replicator-${suffix}.out
+    python3 plot-thru.py ${output_dir}/ycsb-${suffix}.out 10 ${start_cut} ${end_cut}
 
     runtime=`grep "RunTime(ms)" ycsb.out | tail -1 | cut -d ',' -f 3`
 
@@ -180,17 +187,19 @@ process_results()
     do
         local ip="10.10.1."$(($i + 2))
         ssh_with_retry ${ip} "cd ${rubble_dir}; bash save-result.sh ${shard_num} ${suffix};"
-        ssh_with_retry ${ip} "cd ${rubble_dir}; python3 plot-dstat.py dstat-${suffix}.csv 10 ${cpu_num};"
-        ssh_with_retry ${ip} "cd ${rubble_dir}; python3 plot-iostat.py iostat-${suffix}.out 10;"
-        ssh_with_retry ${ip} "cd ${rubble_dir}; python3 network-breakdown.py ${suffix} ${shard_num} ${runtime} > network_breakdown_${suffix}.out;"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; python3 plot-dstat.py ${output_dir}/dstat-${suffix}.csv 10 ${cpu_num};"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; python3 plot-iostat.py ${output_dir}/iostat-${suffix}.out 10;"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; python3 network-breakdown.py ${suffix} ${shard_num} ${runtime} > ${output_dir}/network_breakdown_${suffix}.out;"
     done
 }
 
+# 修改 recordcount，operationcount 的值
 update_workload_file() {
-    local shard_num=$1
+    # local shard_num=$1
+    # 200M
+    local cnt=200000000
     for wl in "a" "b" "c" "d" "e" "f" "g"
     do
-        local cnt=$(( $shard_num * 10000000 ))
         sed -i "s/recordcount=[0-9]\+/recordcount=${cnt}/g" workloads/workload${wl}
         sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workload${wl}
     done
@@ -198,6 +207,9 @@ update_workload_file() {
 
 # 0. clean the environment
 massacre
+
+# make output dir
+mkdir -p "${output_dir}"
 
 # 1. start db instances
 launch_all_nodes

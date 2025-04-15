@@ -75,6 +75,7 @@ else
     exit
 fi
 
+# no use
 ip_to_nid() {
     local ip=$1
     local digit=${ip: -1}
@@ -82,6 +83,7 @@ ip_to_nid() {
     echo $nid
 }
 
+# no use
 change_offload()
 {
     local ip=$1
@@ -91,6 +93,7 @@ change_offload()
     ssh ${USER}@${ip} "rm /sys/kernel/config/nvmet/ports/1/subsystems/${subsystem}; sleep 1; echo ${code} > /sys/kernel/config/nvmet/subsystems/${subsystem}/attr_offload; sleep 1; ln -s /sys/kernel/config/nvmet/subsystems/${subsystem}/ /sys/kernel/config/nvmet/ports/1/subsystems/${subsystem}"
 }
 
+# no use
 enable_offload()
 {
     for (( i=0; i<${rf}; i++ )); do
@@ -99,6 +102,7 @@ enable_offload()
     done
 }
 
+# no use
 disable_offload()
 {
     for (( i=0; i<${rf}; i++ )); do

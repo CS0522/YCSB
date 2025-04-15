@@ -9,7 +9,8 @@ start_cut = int(sys.argv[3])
 end_cut = int(sys.argv[4])
 figure_name = file_name[:-4]
 data = []
-path = './figures/'
+# MODIFIED
+path = '/users/CS0522/outputs/figures/'
 
 agg_cnt = 0
 with open(file_name, 'r') as f:
