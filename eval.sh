@@ -33,8 +33,7 @@ ssh_with_retry()
 {
     local ip=$1
     local cmd=$2
-    # add ssh arg
-    until ssh ${ssh_arg} ${USER}@${ip} "$cmd exit 0"
+    until ssh ${USER}@${ip} "$cmd exit 0"
     do
         sleep 1
     done
@@ -74,6 +73,7 @@ launch_all_nodes()
     for (( i=0; i<${rf}; i++ ))
     do
         local ip="10.10.1."$(($i + 2))
+        ssh_with_retry ${ip} "mkdir -p ${output_dir}; mkdir -p ${output_dir}/figures;"
         ssh_with_retry ${ip} "cd ${rubble_dir}; sudo killall db_node dstat iostat perf > /dev/null 2>&1;"
         ssh_with_retry ${ip} "cd ${rubble_dir}; sudo bash clean.sh ${shard_num} > /dev/null 2>&1;"
         ssh_with_retry ${ip} "cd ${rubble_dir}; sudo bash change-mode.sh ${mode} 1 4;"
@@ -193,6 +193,16 @@ process_results()
     done
 }
 
+get_results()
+{
+    for (( i=0; i<${rf}; i++ ))
+    do
+        local ip="10.10.1."$(($i + 2))
+        scp -o StrictHostKeyChecking=no -r ${USER}@${ip}:${output_dir} ${output_dir}/
+        mv ${output_dir}/outputs ${output_dir}/server_$(($i + 1))-${phase}-workload${workload}-clientthreads_${client_num}
+    done
+}
+
 # 修改 recordcount，operationcount 的值
 update_workload_file() {
     # local shard_num=$1
@@ -210,6 +220,7 @@ massacre
 
 # make output dir
 mkdir -p "${output_dir}"
+mkdir -p "${output_dir}/figures"
 
 # 1. start db instances
 launch_all_nodes
@@ -221,7 +232,7 @@ replicator_args=$(assemble_args)
     -p port=$replicator_port $replicator_args -p replica=$rf > replicator.out 2>&1 &
 
 # 3. load the database
-update_workload_file $shard_num
+update_workload_file
 sleep_ms=1000
 echo "" > ycsb.out
 if [ $phase != load ]; then
@@ -247,3 +258,6 @@ massacre
 start_cut=1000
 end_cut=300
 process_results ${start_cut} ${end_cut}
+
+# 8. get remote node's result
+get_results

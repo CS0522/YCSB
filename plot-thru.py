@@ -9,8 +9,6 @@ start_cut = int(sys.argv[3])
 end_cut = int(sys.argv[4])
 figure_name = file_name[:-4]
 data = []
-# MODIFIED
-path = '/users/CS0522/outputs/figures/'
 
 agg_cnt = 0
 with open(file_name, 'r') as f:
@@ -51,5 +49,5 @@ plt.xlabel('Second')
 plt.ylabel('Throughput (op/s)')
 plt.ylim([0, 200000])
 plt.legend()
-plt.savefig(path + figure_name + '.jpg')
+plt.savefig(figure_name + '.jpg')
 plt.close()

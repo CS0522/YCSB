@@ -90,7 +90,7 @@ check_connectivity() {
 for idx in $(seq 0 6)
 do
     # 200M
-    local cnt=200000000
+    cnt=200000000
     sed -i "s/recordcount=[0-9]\+/recordcount=${cnt}/g" workloads/workload${workloads[$idx]}
     sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workload${workloads[$idx]}
 done
@@ -102,8 +102,9 @@ do
     # only workloadc, workloadg
     if [[ ${idx} -eq 1 || ${idx} -eq 6 ]]; then
         echo "workload: workload${workloads[$idx]}, rate: ${rate[$idx]} op/sec, client_num: ${client_num}, shard_num: ${shard_num}, rf: ${rf}"
-        bash eval.sh load ${workloads[$idx]} ${rate[$idx]} rubble-load-workload${workloads[$idx]} ${client_num} rubble $shard_num $rf
-        bash eval.sh run ${workloads[$idx]} ${rate[$idx]} rubble-run-workload${workloads[$idx]} ${client_num} rubble $shard_num $rf
+        bash eval.sh load ${workloads[$idx]} ${rate[$idx]} load-200m-workload${workloads[$idx]}-${client_num} ${client_num} rubble $shard_num $rf
+        sleep 5
+        bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-200m-workload${workloads[$idx]}-${client_num} ${client_num} rubble $shard_num $rf
     else
         continue
     fi
