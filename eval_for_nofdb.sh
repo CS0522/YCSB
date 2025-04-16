@@ -1,6 +1,6 @@
 #!/bin/env bash
 
-if [ $# != 5 ]; then
+if [ $# != 3 ]; then
     echo "Usage: bash eval_for_nofdb.sh client_num shard_num replication_factor"
     exit
 fi
@@ -100,7 +100,7 @@ done
 for idx in $(seq 0 6)
 do
     # only workloadc, workloadg
-    if [[ ${idx} -eq 1 || ${idx} -eq 6 ]]; then
+    if [[ ${idx} -eq 2 || ${idx} -eq 6 ]]; then
         echo "workload: workload${workloads[$idx]}, rate: ${rate[$idx]} op/sec, client_num: ${client_num}, shard_num: ${shard_num}, rf: ${rf}"
         bash eval.sh load ${workloads[$idx]} ${rate[$idx]} load-200m-workload${workloads[$idx]}-${client_num} ${client_num} rubble $shard_num $rf
         sleep 5
