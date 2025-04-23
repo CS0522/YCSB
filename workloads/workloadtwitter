@@ -5,8 +5,8 @@ workload=site.ycsb.workloads.CoreWorkload
 
 readallfields=true
 
-fieldcount=1
-fieldlength=1000
+# fieldcount=1
+# fieldlength=1000
 
 readproportion=0.5
 updateproportion=0.5
