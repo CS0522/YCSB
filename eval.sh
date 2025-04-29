@@ -76,7 +76,7 @@ launch_all_nodes()
         ssh_with_retry ${ip} "rm -rf ${output_dir}; mkdir -p ${output_dir}; mkdir -p ${output_dir}/figures;"
         ssh_with_retry ${ip} "cd ${rubble_dir}; sudo killall db_node dstat iostat perf > /dev/null 2>&1;"
         ssh_with_retry ${ip} "cd ${rubble_dir}; sudo bash clean.sh ${shard_num} > /dev/null 2>&1;"
-        ssh_with_retry ${ip} "cd ${rubble_dir}; sudo bash change-mode.sh ${mode} 2 4;"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; sudo bash change-mode.sh ${mode} 1 4;"
     done
     set_cgroups
 
