@@ -99,13 +99,8 @@ done
 
 for idx in $(seq 0 6)
 do
-    # only workloadc, workloadg
-    if [[ ${idx} -eq 2 || ${idx} -eq 6 ]]; then
-        echo "workload: workload${workloads[$idx]}, rate: ${rate[$idx]} op/sec, client_num: ${client_num}, shard_num: ${shard_num}, rf: ${rf}"
-        bash eval.sh load ${workloads[$idx]} ${rate[$idx]} load-200m-workload${workloads[$idx]}-${client_num} ${client_num} rubble $shard_num $rf
-        sleep 5
-        bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-200m-workload${workloads[$idx]}-${client_num} ${client_num} rubble $shard_num $rf
-    else
-        continue
-    fi
+    echo "workload: workload${workloads[$idx]}, rate: ${rate[$idx]} op/sec, client_num: ${client_num}, shard_num: ${shard_num}, rf: ${rf}"
+    bash eval.sh load ${workloads[$idx]} ${rate[$idx]} load-200m-workload${workloads[$idx]}-${client_num} ${client_num} rubble $shard_num $rf
+    sleep 5
+    bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-200m-workload${workloads[$idx]}-${client_num} ${client_num} rubble $shard_num $rf
 done
