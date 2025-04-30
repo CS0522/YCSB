@@ -112,9 +112,6 @@ launch_all_nodes()
     done
     set_cgroups
 
-    # 开启远端 monitor
-    start_server_cpu_monitor
-
     # 2. launch DB instances on the server
     for (( i=0; i<${shard_num}; i++ ))
     do
@@ -282,10 +279,6 @@ massacre
 mkdir -p "${output_dir}"
 mkdir -p "${output_dir}/figures"
 
-# 开启远端 monitor
-# start_server_cpu_monitor
-# 放在 launch_all_nodes 中
-
 # 1. start db instances
 launch_all_nodes
 
@@ -311,6 +304,9 @@ fi
 
 # 4. record performance metrics
 record_stats
+
+# 开启远端 monitor
+start_server_cpu_monitor
 
 # 5. run YCSB
 bash $phase.sh $workload localhost:$replicator_port $shard_num $sleep_ms $rate $client_num >> ycsb.out 2>&1
