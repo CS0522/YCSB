@@ -97,6 +97,7 @@ launch_all_nodes()
     for (( i=0; i<${rf}; i++ ))
     do
         local ip="10.10.1."$(($i + 2))
+        # ssh_with_retry ${ip} "cd ${rubble_dir}; sudo pkill -f server_start_monitor; sudo pkill -f server_kill_monitor;"
         ssh_with_retry ${ip} "rm -rf ${output_dir}; mkdir -p ${output_dir}; mkdir -p ${output_dir}/figures;"
         ssh_with_retry ${ip} "cd ${rubble_dir}; sudo killall db_node dstat iostat perf > /dev/null 2>&1;"
         ssh_with_retry ${ip} "cd ${rubble_dir}; sudo bash clean.sh ${shard_num} > /dev/null 2>&1;"
@@ -272,7 +273,7 @@ echo "" > ycsb.out
 if [ $phase != load ]; then
     relax_cpu
 
-    bash load.sh $workload localhost:$replicator_port $shard_num $sleep_ms 120000 $client_num > ycsb.out 2>&1
+    # bash load.sh $workload localhost:$replicator_port $shard_num $sleep_ms 120000 $client_num > ycsb.out 2>&1
 
     wait_pending_jobs
 

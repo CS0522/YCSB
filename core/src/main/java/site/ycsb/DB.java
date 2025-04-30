@@ -45,7 +45,7 @@ import java.util.Vector;
 public abstract class DB {
   // [Rubble]
   // MODIFIED: batchsize = 1
-  public static final int BATCHSIZE = 1;
+  public static final int BATCHSIZE = 1000;
   // [Rubble]
 
   /**
