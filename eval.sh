@@ -43,6 +43,13 @@ ssh_with_retry()
     done
 }
 
+ssh_without_retry()
+{
+    local ip=$1
+    local cmd=$2
+    ssh ${USER}@${ip} "$cmd exit 0"
+}
+
 start_server_cpu_monitor()
 {
     for (( i=0; i<${rf}; i++ ))
@@ -97,7 +104,7 @@ launch_all_nodes()
     for (( i=0; i<${rf}; i++ ))
     do
         local ip="10.10.1."$(($i + 2))
-        # ssh_with_retry ${ip} "cd ${rubble_dir}; sudo pkill -f server_start_monitor; sudo pkill -f server_kill_monitor;"
+        ssh_without_retry ${ip} "cd ${rubble_dir}; sudo pkill -f server_start_monitor; sudo pkill -f server_kill_monitor;"
         ssh_with_retry ${ip} "rm -rf ${output_dir}; mkdir -p ${output_dir}; mkdir -p ${output_dir}/figures;"
         ssh_with_retry ${ip} "cd ${rubble_dir}; sudo killall db_node dstat iostat perf > /dev/null 2>&1;"
         ssh_with_retry ${ip} "cd ${rubble_dir}; sudo bash clean.sh ${shard_num} > /dev/null 2>&1;"
@@ -199,6 +206,25 @@ massacre()
     done
 }
 
+recreate_sst_pool()
+{
+    echo "Recreating SST Pool......"
+    # recreate sst pool
+    local pid=()
+    for (( i=0; i<${rf}; i++ ))
+    do
+        local ip="10.10.1."$(($i + 2))
+        # 64 MiB sst
+        ssh_with_retry ${ip} "cd ${rubble_dir}; bash verify-sst-pool.sh 67108864 1 5000 ${shard_num} ${rf} 1" >> recover-$i.log 2>&1 &
+        pid[$i]=$!
+    done
+    for i in ${pid[@]}
+    do
+        wait $i
+    done
+    echo "Done!"
+}
+
 process_results()
 {
 	start_cut=$1
@@ -249,6 +275,9 @@ update_workload_file() {
 # 0. clean the environment
 massacre
 
+# 每次跑之前都清理一下 sst-pool
+# recreate_sst_pool
+
 # make output dir
 mkdir -p "${output_dir}"
 mkdir -p "${output_dir}/figures"
@@ -273,7 +302,7 @@ echo "" > ycsb.out
 if [ $phase != load ]; then
     relax_cpu
 
-    # bash load.sh $workload localhost:$replicator_port $shard_num $sleep_ms 120000 $client_num > ycsb.out 2>&1
+    bash load.sh $workload localhost:$replicator_port $shard_num $sleep_ms 120000 $client_num > ycsb.out 2>&1
 
     wait_pending_jobs
 
