@@ -29,6 +29,10 @@ ssh_arg="-o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyCh
 # 添加 outputs 目录
 output_dir="/users/CS0522/outputs"
 
+# monitor 相关
+cpu_monitor_pid="${rubble_dir}/cpu_monitor.pid"
+sample_interval=3
+
 ssh_with_retry()
 {
     local ip=$1
@@ -36,6 +40,26 @@ ssh_with_retry()
     until ssh ${USER}@${ip} "$cmd exit 0"
     do
         sleep 1
+    done
+}
+
+start_server_cpu_monitor()
+{
+    for (( i=0; i<${rf}; i++ ))
+    do
+        local ip="10.10.1."$(($i + 2))
+        echo "Starting monitor for ${ip}"
+        ssh_with_retry ${ip} "rm -rf ${cpu_monitor_pid}; cd ${rubble_dir}; nohup bash server_start_monitor.sh "${sample_interval}" "${output_dir}/monitor-${suffix}.log" >/dev/null 2>&1 &; echo \$! > ${cpu_monitor_pid};"
+    done
+}
+
+kill_server_cpu_monitor()
+{
+    for (( i=0; i<${rf}; i++ ))
+    do
+        local ip="10.10.1."$(($i + 2))
+        echo "Killing monitor for ${ip}"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; bash server_kill_monitor.sh ${cpu_monitor_pid};"
     done
 }
 
@@ -79,6 +103,9 @@ launch_all_nodes()
         ssh_with_retry ${ip} "cd ${rubble_dir}; sudo bash change-mode.sh ${mode} 1 4;"
     done
     set_cgroups
+
+    # 开启远端 monitor
+    start_server_cpu_monitor
 
     # 2. launch DB instances on the server
     for (( i=0; i<${shard_num}; i++ ))
@@ -200,20 +227,23 @@ get_results()
         local ip="10.10.1."$(($i + 2))
         scp -o StrictHostKeyChecking=no -r ${USER}@${ip}:${output_dir} ${output_dir}/
         mv ${output_dir}/outputs ${output_dir}/server_$(($i + 1))-${phase}-workload${workload}-clientthreads_${client_num}
+        # 删除 top 文件
+        sudo rm -rf ${output_dir}/server_$(($i + 1))-${phase}-workload${workload}-clientthreads_${client_num}/top*
     done
 }
 
 # 修改 recordcount，operationcount 的值
 update_workload_file() {
     # local shard_num=$1
-    # 200M
-    local cnt=200000000
-    for wl in "a" "b" "c" "d" "e" "f" "g"
+    # 30M
+    local cnt=30000000
+    for wl in "a" "b" "c" "d" "f" "g"
     do
         sed -i "s/recordcount=[0-9]\+/recordcount=${cnt}/g" workloads/workload${wl}
         sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workload${wl}
     done
 }
+
 
 # 0. clean the environment
 massacre
@@ -221,6 +251,10 @@ massacre
 # make output dir
 mkdir -p "${output_dir}"
 mkdir -p "${output_dir}/figures"
+
+# 开启远端 monitor
+# start_server_cpu_monitor
+# 放在 launch_all_nodes 中
 
 # 1. start db instances
 launch_all_nodes
@@ -253,6 +287,9 @@ bash $phase.sh $workload localhost:$replicator_port $shard_num $sleep_ms $rate $
 
 # 6. kill all processes
 massacre
+
+# 关闭远端 monitor
+kill_server_cpu_monitor
 
 # 7. save results and plot figures
 start_cut=1000
