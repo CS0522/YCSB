@@ -12,7 +12,7 @@ shard_num=$2
 # 3
 rf=$3
 
-workloads=("a" "b" "c" "d" "e" "f" "g")
+workloads=("a" "b" "c" "d" "f" "g")
 
 # r6525 nodes
 if [ $rf -eq 2 ]; then
@@ -87,20 +87,20 @@ check_connectivity() {
 }
 
 # 修改 recordcount，operationcount 的值
-for idx in $(seq 0 6)
+for idx in $(seq 0 5)
 do
-    # 200M
-    cnt=200000000
+    # 30M
+    cnt=30000000
     sed -i "s/recordcount=[0-9]\+/recordcount=${cnt}/g" workloads/workload${workloads[$idx]}
     sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workload${workloads[$idx]}
 done
 
 # bash eval.sh load a $load_rate rubble-offload-load-workloada ${client_num} rubble $shard_num $rf
 
-for idx in $(seq 0 6)
+for idx in $(seq 0 5)
 do
     echo "workload: workload${workloads[$idx]}, rate: ${rate[$idx]} op/sec, client_num: ${client_num}, shard_num: ${shard_num}, rf: ${rf}"
-    bash eval.sh load ${workloads[$idx]} ${rate[$idx]} load-200m-workload${workloads[$idx]}-${client_num} ${client_num} rubble $shard_num $rf
+    bash eval.sh load ${workloads[$idx]} ${rate[$idx]} load-30m-workload${workloads[$idx]}-${client_num} ${client_num} rubble $shard_num $rf
     sleep 5
-    bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-200m-workload${workloads[$idx]}-${client_num} ${client_num} rubble $shard_num $rf
+    bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-30m-workload${workloads[$idx]}-${client_num} ${client_num} rubble $shard_num $rf
 done
