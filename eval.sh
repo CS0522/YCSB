@@ -49,7 +49,7 @@ start_server_cpu_monitor()
     do
         local ip="10.10.1."$(($i + 2))
         echo "Starting monitor for ${ip}"
-        ssh_with_retry ${ip} "rm -rf ${cpu_monitor_pid}; cd ${rubble_dir}; nohup bash server_start_monitor.sh "${sample_interval}" "${output_dir}/monitor-${suffix}.log" >/dev/null 2>&1 &; echo \$! > ${cpu_monitor_pid};"
+        ssh_with_retry ${ip} "rm -rf ${cpu_monitor_pid}; cd ${rubble_dir}; nohup bash server_start_monitor.sh "${sample_interval}" "${output_dir}/monitor-${suffix}.log" >/dev/null 2>&1 & echo \$! > ${cpu_monitor_pid};"
     done
 }
 
