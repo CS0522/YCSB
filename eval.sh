@@ -203,25 +203,6 @@ massacre()
     done
 }
 
-recreate_sst_pool()
-{
-    echo "Recreating SST Pool......"
-    # recreate sst pool
-    local pid=()
-    for (( i=0; i<${rf}; i++ ))
-    do
-        local ip="10.10.1."$(($i + 2))
-        # 64 MiB sst
-        ssh_with_retry ${ip} "cd ${rubble_dir}; bash verify-sst-pool.sh 67108864 1 5000 ${shard_num} ${rf} 1" >> recover-$i.log 2>&1 &
-        pid[$i]=$!
-    done
-    for i in ${pid[@]}
-    do
-        wait $i
-    done
-    echo "Done!"
-}
-
 process_results()
 {
 	start_cut=$1
@@ -260,7 +241,7 @@ get_results()
 update_workload_file() {
     # local shard_num=$1
     # 30M
-    local cnt=30000000
+    local cnt=$(( $shard_num * 10000000 ))
     for wl in "a" "b" "c" "d" "f" "g"
     do
         sed -i "s/recordcount=[0-9]\+/recordcount=${cnt}/g" workloads/workload${wl}
@@ -271,9 +252,6 @@ update_workload_file() {
 
 # 0. clean the environment
 massacre
-
-# 每次跑之前都清理一下 sst-pool
-# recreate_sst_pool
 
 # make output dir
 mkdir -p "${output_dir}"
