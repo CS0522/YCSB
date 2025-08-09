@@ -99,6 +99,10 @@ done
 
 for idx in $(seq 0 5)
 do
+    # 只做 workloadc
+    if [ "$idx" -ne 2 ]; then
+        continue
+    fi
     echo "workload: workload${workloads[$idx]}, rate: ${rate[$idx]} op/sec, client_num: ${client_num}, shard_num: ${shard_num}, rf: ${rf}"
     bash eval.sh load ${workloads[$idx]} ${rate[$idx]} load-30m-workload${workloads[$idx]}-${client_num} ${client_num} rubble $shard_num $rf
     sleep 5
