@@ -257,16 +257,16 @@ get_results()
 }
 
 # 修改 recordcount，operationcount 的值
-update_workload_file() {
-    # local shard_num=$1
-    # 30M
-    local cnt=30000000
-    for wl in "a" "b" "c" "d" "f" "g"
-    do
-        sed -i "s/recordcount=[0-9]\+/recordcount=${cnt}/g" workloads/workload${wl}
-        sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workload${wl}
-    done
-}
+# update_workload_file() {
+#     # local shard_num=$1
+#     # 30M
+#     local cnt=30000000
+#     for wl in "a" "b" "c" "d" "f" "g"
+#     do
+#         sed -i "s/recordcount=[0-9]\+/recordcount=${cnt}/g" workloads/workload${wl}
+#         sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workload${wl}
+#     done
+# }
 
 
 # 0. clean the environment
@@ -289,7 +289,7 @@ replicator_args=$(assemble_args)
     -p port=$replicator_port $replicator_args -p replica=$rf > replicator.out 2>&1 &
 
 # 3. load the database
-update_workload_file
+# update_workload_file
 sleep_ms=1000
 echo "" > ycsb.out
 if [ $phase != load ]; then

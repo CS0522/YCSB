@@ -1,18 +1,17 @@
 #!/bin/env bash
 
 if [ $# != 3 ]; then
-    echo "Usage: bash eval_for_nofdb.sh client_num shard_num replication_factor"
+    echo "Usage: bash eval_for_nofdb.sh shard_num replication_factor"
     exit
 fi
 
-# 50
-client_num=$1
 # 3
-shard_num=$2
+shard_num=$1
 # 3
-rf=$3
+rf=$2
 
 workloads=("a" "b" "c" "d" "f" "g")
+client_threads=(32 16 8 4 2 1)
 
 # r6525 nodes
 if [ $rf -eq 2 ]; then
@@ -86,25 +85,31 @@ check_connectivity() {
     done
 }
 
-# 修改 recordcount，operationcount 的值
-for idx in $(seq 0 5)
-do
-    # 30M
-    cnt=30000000
-    sed -i "s/recordcount=[0-9]\+/recordcount=${cnt}/g" workloads/workload${workloads[$idx]}
-    sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workload${workloads[$idx]}
-done
+function run_fn()
+{
+    for client_thread in ${client_threads[@]}; do
+        # 修改 recordcount，operationcount 的值
+        for idx in $(seq 0 5)
+        do
+            # 3M per thread
+            cnt=$((${client_thread} * 3000000))
+            sed -i "s/recordcount=[0-9]\+/recordcount=${cnt}/g" workloads/workload${workloads[$idx]}
+            sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workload${workloads[$idx]}
+        done
 
-# bash eval.sh load a $load_rate rubble-offload-load-workloada ${client_num} rubble $shard_num $rf
+        # bash eval.sh load a $load_rate rubble-offload-load-workloada ${client_thread} rubble $shard_num $rf
 
-for idx in $(seq 0 5)
-do
-    # 只做 workloadc
-    if [ "$idx" -ne 2 ]; then
-        continue
-    fi
-    echo "workload: workload${workloads[$idx]}, rate: ${rate[$idx]} op/sec, client_num: ${client_num}, shard_num: ${shard_num}, rf: ${rf}"
-    bash eval.sh load ${workloads[$idx]} ${rate[$idx]} load-30m-workload${workloads[$idx]}-${client_num} ${client_num} rubble $shard_num $rf
-    sleep 5
-    bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-30m-workload${workloads[$idx]}-${client_num} ${client_num} rubble $shard_num $rf
-done
+        for idx in $(seq 0 5)
+        do
+            # 只做 workloadc
+            if [ "$idx" -ne 2 ]; then
+                continue
+            fi
+            echo "workload: workload${workloads[$idx]}, rate: ${rate[$idx]} op/sec, client_thread: ${client_thread}, shard_num: ${shard_num}, rf: ${rf}"
+            bash eval.sh load ${workloads[$idx]} ${rate[$idx]} load-workload${workloads[$idx]}-3mperthread-${client_thread} ${client_thread} rubble $shard_num $rf
+            sleep 5
+            bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-workload${workloads[$idx]}-3mperthread-${client_thread} ${client_thread} rubble $shard_num $rf
+        done
+    done
+}
+
