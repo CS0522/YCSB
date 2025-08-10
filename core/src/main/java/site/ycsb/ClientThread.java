@@ -20,7 +20,6 @@ package site.ycsb;
 import site.ycsb.measurements.Measurements;
 import site.ycsb.workloads.CoreWorkload;
 
-import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.LockSupport;
@@ -108,6 +107,9 @@ public class ClientThread implements Runnable {
     int      valueByte = Integer.parseInt(request[3]);
     String   operation = request[5];
 
+    // MODIFIED
+    int prevOpsDone = ((DBWrapper)db).getOpsDone();
+
     if (operation.equals("set") || !dotransactions) {
       byte[] bytes = new byte[valueByte];
       rand.nextBytes(bytes);
@@ -117,6 +119,11 @@ public class ClientThread implements Runnable {
       ((DBWrapper)db).read("usertable", key, null, null);
     } else {
       System.out.println("Unsupported! " + operation);
+    }
+
+    // MODIFIED
+    while ((prevOpsDone + 1) != ((DBWrapper)db).getOpsDone()) {
+
     }
   }
   // [Rubble]
@@ -170,7 +177,8 @@ public class ClientThread implements Runnable {
             lineNumber++;
           }
 
-          throttleNanos(startTimeNanos);
+          // MODIFIED
+          throttleNanos(0);
         }
 
         sc.close();
@@ -191,7 +199,8 @@ public class ClientThread implements Runnable {
 
           opsdone++;
 
-          throttleNanos(startTimeNanos);
+          // MODIFIED
+          throttleNanos(0);
         }
 
         // [Rubble]
@@ -204,14 +213,22 @@ public class ClientThread implements Runnable {
         long startTimeNanos = System.nanoTime();
 
         while (((opcount == 0) || (opsdone < opcount)) && !workload.isStopRequested()) {
+          // MODIFIED
+          int prevOpsDone = ((DBWrapper)db).getOpsDone();
 
           if (!workload.doInsert(db, workloadstate)) {
             break;
           }
 
+          // MODIFIED
+          while ((prevOpsDone + 1) != ((DBWrapper)db).getOpsDone()) {
+
+          }
+
           opsdone++;
 
-          throttleNanos(startTimeNanos);
+          // MODIFIED
+          throttleNanos(0);
         }
         // [Rubble]
         for (int i = 0; i < shardNum; i++) {

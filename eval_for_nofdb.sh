@@ -11,7 +11,7 @@ shard_num=$1
 rf=$2
 
 workloads=("a" "b" "c" "d" "f" "g")
-client_threads=(32 16 8 4 2 1)
+client_threads=(50)
 
 # r6525 nodes
 if [ $rf -eq 2 ]; then
@@ -92,7 +92,8 @@ function run_fn()
         for idx in $(seq 0 5)
         do
             # 3M per thread
-            cnt=$((${client_thread} * 3000000))
+            # cnt=$((${client_thread} * 3000000))
+            cnt=10000000
             sed -i "s/recordcount=[0-9]\+/recordcount=${cnt}/g" workloads/workload${workloads[$idx]}
             sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workload${workloads[$idx]}
         done
@@ -106,13 +107,13 @@ function run_fn()
                 continue
             fi
             echo "workload: workload${workloads[$idx]}, rate: ${rate[$idx]} op/sec, client_thread: ${client_thread}, shard_num: ${shard_num}, rf: ${rf}"
-            bash eval.sh load ${workloads[$idx]} ${rate[$idx]} load-workload${workloads[$idx]}-3mperthread-${client_thread} ${client_thread} rubble $shard_num $rf
+            bash eval.sh load ${workloads[$idx]} ${rate[$idx]} load-workload${workloads[$idx]}-10m-${client_thread} ${client_thread} rubble $shard_num $rf
             sleep 5
-            bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-workload${workloads[$idx]}-3mperthread-${client_thread} ${client_thread} rubble $shard_num $rf
-        done
+            bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-workload${workloads[$idx]}-10m-${client_thread} ${client_thread} rubble $shard_num $rf
 
-        # rename outputs
-        mv /users/CS0522/outputs /users/CS0522/3m-perthread_${client_thread}
+            # rename outputs
+            mv /users/CS0522/outputs /users/CS0522/workload${workloads[$idx]}-10m-${client_thread}
+        done
     done
 }
 

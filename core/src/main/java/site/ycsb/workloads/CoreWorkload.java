@@ -19,7 +19,6 @@ package site.ycsb.workloads;
 
 import site.ycsb.*;
 import site.ycsb.generator.*;
-import site.ycsb.generator.UniformLongGenerator;
 import site.ycsb.measurements.Measurements;
 
 import java.io.IOException;
@@ -677,6 +676,9 @@ public class CoreWorkload extends Workload {
       return false;
     }
 
+    // MODIFIED
+    int prevOpsDone = ((DBWrapper)db).getOpsDone();
+
     switch (operation) {
     case "READ":
       doTransactionRead(db);
@@ -692,6 +694,11 @@ public class CoreWorkload extends Workload {
       break;
     default:
       doTransactionReadModifyWrite(db);
+    }
+
+    // MODIFIED
+    while ((prevOpsDone + 1) != ((DBWrapper)db).getOpsDone()) {
+
     }
 
     return true;
