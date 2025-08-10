@@ -1,6 +1,6 @@
 #!/bin/env bash
 
-if [ $# != 3 ]; then
+if [ $# != 2 ]; then
     echo "Usage: bash eval_for_nofdb.sh shard_num replication_factor"
     exit
 fi
