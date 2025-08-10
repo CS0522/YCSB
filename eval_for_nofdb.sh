@@ -113,3 +113,4 @@ function run_fn()
     done
 }
 
+run_fn
