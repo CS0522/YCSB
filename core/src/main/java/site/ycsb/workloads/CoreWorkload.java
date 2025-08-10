@@ -805,11 +805,22 @@ public class CoreWorkload extends Workload {
     long ist = measurements.getIntendedStartTimeNs();
     long st = System.nanoTime();
 
-    // [Rubble] it adds 2 to opsdone, so decrease 1 here
-    ((DBWrapper)db).decreaseOpsDone();
-    // [Rubble]
+    // // [Rubble] it adds 2 to opsdone, so decrease 1 here
+    // ((DBWrapper)db).decreaseOpsDone();
+    // // [Rubble]
+
+    // MODIFIED
+    int prevOpsDone = ((DBWrapper)db).getOpsDone();
 
     db.read(table, keyname, fields, cells);
+
+    // MODIFIED
+    while ((prevOpsDone + 1) != ((DBWrapper)db).getOpsDone()) {
+
+    }
+
+    // MODIFIED
+    ((DBWrapper)db).decreaseOpsDone();
 
     db.update(table, keyname, values);
 
