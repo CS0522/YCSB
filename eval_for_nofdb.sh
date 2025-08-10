@@ -112,6 +112,8 @@ function run_fn()
             bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-workload${workloads[$idx]}-10m-${client_thread} ${client_thread} rubble $shard_num $rf
 
             # rename outputs
+            rm -rf /users/CS0522/outputs/*.jpg
+            rm -rf /users/CS0522/outputs/figures
             mv /users/CS0522/outputs /users/CS0522/workload${workloads[$idx]}-10m-${client_thread}
         done
     done
