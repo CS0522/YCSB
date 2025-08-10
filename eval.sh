@@ -251,8 +251,14 @@ get_results()
         local ip="10.10.1."$(($i + 2))
         scp -o StrictHostKeyChecking=no -r ${USER}@${ip}:${output_dir} ${output_dir}/
         mv ${output_dir}/outputs ${output_dir}/server_$(($i + 1))-${phase}-workload${workload}-clientthreads_${client_num}
-        # 删除 top 文件
+        # 删除文件，仅保留 monitor
         sudo rm -rf ${output_dir}/server_$(($i + 1))-${phase}-workload${workload}-clientthreads_${client_num}/top*
+        sudo rm -rf ${output_dir}/server_$(($i + 1))-${phase}-workload${workload}-clientthreads_${client_num}/LOG*
+        sudo rm -rf ${output_dir}/server_$(($i + 1))-${phase}-workload${workload}-clientthreads_${client_num}/figures
+        sudo rm -rf ${output_dir}/server_$(($i + 1))-${phase}-workload${workload}-clientthreads_${client_num}/*.csv
+        sudo rm -rf ${output_dir}/server_$(($i + 1))-${phase}-workload${workload}-clientthreads_${client_num}/*.pdf
+        sudo rm -rf ${output_dir}/server_$(($i + 1))-${phase}-workload${workload}-clientthreads_${client_num}/*.out
+        sudo rm -rf ${output_dir}/server_$(($i + 1))-${phase}-workload${workload}-clientthreads_${client_num}/*.jpg
     done
 }
 

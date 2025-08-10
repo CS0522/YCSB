@@ -110,6 +110,9 @@ function run_fn()
             sleep 5
             bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-workload${workloads[$idx]}-3mperthread-${client_thread} ${client_thread} rubble $shard_num $rf
         done
+
+        # rename outputs
+        mv /users/CS0522/outputs /users/CS0522/3m-perthread_${client_thread}
     done
 }
 
