@@ -2,8 +2,9 @@
 
 # set -x
 
-if [ $# != 8 ]; then
-    echo "Usage: bash eval.sh phase workload rate suffix client_num mode shard_num replication_factor"
+# 新增 username
+if [ $# != 9 ]; then
+    echo "Usage: bash eval.sh phase workload rate suffix client_num mode shard_num replication_factor username"
     echo "Got: $@"
     exit
 fi
@@ -16,6 +17,7 @@ client_num=$5
 mode=$6
 shard_num=$7
 rf=$8
+username=$9
 cpu_num=$(( 1 * client_num ))
 
 echo -e "\033[0;32m ${phase} ${workload} ${mode} \033[0m"
@@ -27,7 +29,7 @@ rubble_dir="/mnt/data/rocksdb/rubble"
 ssh_arg="-o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -Tq"
 
 # 添加 outputs 目录
-output_dir="/users/CS0522/outputs"
+output_dir="/users/${username}/outputs"
 
 # monitor 相关
 cpu_monitor_pid="${rubble_dir}/cpu_monitor.pid"
@@ -237,10 +239,11 @@ process_results()
     for (( i=0; i<${rf}; i++ ))
     do
         local ip="10.10.1."$(($i + 2))
-        ssh_with_retry ${ip} "cd ${rubble_dir}; bash save-result.sh ${shard_num} ${suffix};"
+        ssh_with_retry ${ip} "cd ${rubble_dir}; bash save-result.sh ${shard_num} ${suffix} ${username};"
         ssh_with_retry ${ip} "cd ${rubble_dir}; python3 plot-dstat.py ${output_dir}/dstat-${suffix}.csv 10 ${cpu_num};"
         ssh_with_retry ${ip} "cd ${rubble_dir}; python3 plot-iostat.py ${output_dir}/iostat-${suffix}.out 10;"
-        ssh_with_retry ${ip} "cd ${rubble_dir}; python3 network-breakdown.py ${suffix} ${shard_num} ${runtime} > ${output_dir}/network_breakdown_${suffix}.out;"
+        # 新增 username 参数
+        ssh_with_retry ${ip} "cd ${rubble_dir}; python3 network-breakdown.py ${suffix} ${shard_num} ${runtime} ${username} > ${output_dir}/network_breakdown_${suffix}.out;"
     done
 }
 

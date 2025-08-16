@@ -1,7 +1,8 @@
 #!/bin/env bash
 
-if [ $# != 2 ]; then
-    echo "Usage: bash eval_for_nofdb.sh shard_num replication_factor"
+# 新增 username
+if [ $# != 3 ]; then
+    echo "Usage: bash eval_for_nofdb.sh shard_num replication_factor username"
     exit
 fi
 
@@ -9,6 +10,8 @@ fi
 shard_num=$1
 # 3
 rf=$2
+# 新增 username
+username=$3
 
 workloads=("a" "b" "c" "d" "f" "g")
 client_threads=(32 16 8 4 2 1)
@@ -107,14 +110,14 @@ function run_fn()
                 continue
             fi
             echo "workload: workload${workloads[$idx]}, rate: ${rate[$idx]} op/sec, client_thread: ${client_thread}, shard_num: ${shard_num}, rf: ${rf}"
-            bash eval.sh load ${workloads[$idx]} ${rate[$idx]} load-workload${workloads[$idx]}-3m_perthread-${client_thread} ${client_thread} rubble $shard_num $rf
+            bash eval.sh load ${workloads[$idx]} ${rate[$idx]} load-workload${workloads[$idx]}-3m_perthread-${client_thread} ${client_thread} rubble $shard_num $rf ${username}
             sleep 5
-            bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-workload${workloads[$idx]}-3m_perthread-${client_thread} ${client_thread} rubble $shard_num $rf
+            bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-workload${workloads[$idx]}-3m_perthread-${client_thread} ${client_thread} rubble $shard_num $rf ${username}
 
             # rename outputs
-            rm -rf /users/CS0522/outputs/*.jpg
-            rm -rf /users/CS0522/outputs/figures
-            mv /users/CS0522/outputs /users/CS0522/workload${workloads[$idx]}-3m_perthread-${client_thread}
+            rm -rf /users/${username}/outputs/*.jpg
+            rm -rf /users/${username}/outputs/figures
+            mv /users/${username}/outputs /users/${username}/workload${workloads[$idx]}-3m_perthread-${client_thread}
         done
     done
 }
