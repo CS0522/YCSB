@@ -90,34 +90,40 @@ check_connectivity() {
 
 function run_fn()
 {
+    mkdir -p /users/${username}/get_outputs
+
     for client_thread in ${client_threads[@]}; do
         # 修改 recordcount，operationcount 的值
         for idx in $(seq 0 5)
         do
             # 3M per thread
-            cnt=$((${client_thread} * 3000000))
-            # cnt=10000000
+            # cnt=$((${client_thread} * 3000000))
+            # 100M
+            cnt=100000000
             sed -i "s/recordcount=[0-9]\+/recordcount=${cnt}/g" workloads/workload${workloads[$idx]}
             sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workload${workloads[$idx]}
         done
 
-        # bash eval.sh load a $load_rate rubble-offload-load-workloada ${client_thread} rubble $shard_num $rf
+        bash eval.sh load ${workloads[0]} ${rate[0]} load-allworkload-100m-${client_thread} ${client_thread} rubble $shard_num $rf ${username}
+        # rename outputs
+        rm -rf /users/${username}/outputs/*.jpg
+        rm -rf /users/${username}/outputs/figures
+        mv /users/${username}/outputs /users/${username}/get_outputs/load-100m-${client_thread}
+        sleep 5
 
         for idx in $(seq 0 5)
         do
             # 只做 workloadc
-            if [ "$idx" -ne 2 ]; then
-                continue
-            fi
+            # if [ "$idx" -ne 2 ]; then
+            #     continue
+            # fi
             echo "workload: workload${workloads[$idx]}, rate: ${rate[$idx]} op/sec, client_thread: ${client_thread}, shard_num: ${shard_num}, rf: ${rf}"
-            bash eval.sh load ${workloads[$idx]} ${rate[$idx]} load-workload${workloads[$idx]}-3m_perthread-${client_thread} ${client_thread} rubble $shard_num $rf ${username}
-            sleep 5
-            bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-workload${workloads[$idx]}-3m_perthread-${client_thread} ${client_thread} rubble $shard_num $rf ${username}
+            bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-workload${workloads[$idx]}-100m-${client_thread} ${client_thread} rubble $shard_num $rf ${username}
 
             # rename outputs
             rm -rf /users/${username}/outputs/*.jpg
             rm -rf /users/${username}/outputs/figures
-            mv /users/${username}/outputs /users/${username}/workload${workloads[$idx]}-3m_perthread-${client_thread}
+            mv /users/${username}/outputs /users/${username}/get_outputs/workload${workloads[$idx]}-100m-${client_thread}
         done
     done
 }
