@@ -14,7 +14,7 @@ rf=$2
 username=$3
 
 workloads=("a" "b" "c" "d" "f" "g")
-client_threads=(32 16 8 4 2 1)
+client_threads=(32)
 
 # r6525 nodes
 if [ $rf -eq 2 ]; then
@@ -104,13 +104,6 @@ function run_fn()
             sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workload${workloads[$idx]}
         done
 
-        bash eval.sh load ${workloads[0]} ${rate[0]} load-allworkload-100m-${client_thread} ${client_thread} rubble $shard_num $rf ${username}
-        # rename outputs
-        rm -rf /users/${username}/outputs/*.jpg
-        rm -rf /users/${username}/outputs/figures
-        mv /users/${username}/outputs /users/${username}/get_outputs/load-100m-${client_thread}
-        sleep 5
-
         for idx in $(seq 0 5)
         do
             # 只做 workloadc
@@ -118,6 +111,8 @@ function run_fn()
             #     continue
             # fi
             echo "workload: workload${workloads[$idx]}, rate: ${rate[$idx]} op/sec, client_thread: ${client_thread}, shard_num: ${shard_num}, rf: ${rf}"
+            bash eval.sh load ${workloads[$idx]} ${rate[$idx]} load-workload${workloads[$idx]}-100m-${client_thread} ${client_thread} rubble $shard_num $rf ${username}
+            sleep 5
             bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-workload${workloads[$idx]}-100m-${client_thread} ${client_thread} rubble $shard_num $rf ${username}
 
             # rename outputs

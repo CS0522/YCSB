@@ -304,9 +304,10 @@ echo "" > ycsb.out
 if [ $phase != load ]; then
     relax_cpu
 
-    bash load.sh $workload localhost:$replicator_port $shard_num $sleep_ms 120000 $client_num > ycsb.out 2>&1
+    # bash load.sh $workload localhost:$replicator_port $shard_num $sleep_ms 120000 $client_num > ycsb.out 2>&1
 
-    wait_pending_jobs
+    # wait_pending_jobs
+    sleep 3
 
     set_cgroups
 fi
