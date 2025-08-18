@@ -14,7 +14,7 @@ rf=$2
 username=$3
 
 workloads=("a" "b" "c" "d" "f" "g")
-client_threads=(32 16 8 4 2 1)
+client_threads=(32)
 
 # r6525 nodes
 if [ $rf -eq 2 ]; then
@@ -97,30 +97,30 @@ function run_fn()
         for idx in $(seq 0 5)
         do
             # 3M per thread
-            cnt=$((${client_thread} * 3000000))
+            # cnt=$((${client_thread} * 3000000))
             # 100M
-            # cnt=100000000
+            cnt=100000000
             sed -i "s/recordcount=[0-9]\+/recordcount=${cnt}/g" workloads/workload${workloads[$idx]}
             sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workload${workloads[$idx]}
             # 修改请求分布
-            # sed -i "s/requestdistribution=uniform\b/requestdistribution=zipfian/g" workloads/workload${workloads[$idx]}
+            sed -i "s/requestdistribution=uniform\b/requestdistribution=zipfian/g" workloads/workload${workloads[$idx]}
         done
 
         for idx in $(seq 0 5)
         do
             # 只做 workloadc
-            if [ "$idx" -ne 2 ]; then
-                continue
-            fi
+            # if [ "$idx" -ne 2 ]; then
+            #     continue
+            # fi
             echo "workload: workload${workloads[$idx]}, rate: ${rate[$idx]} op/sec, client_thread: ${client_thread}, shard_num: ${shard_num}, rf: ${rf}"
-            bash eval.sh load ${workloads[$idx]} ${rate[$idx]} load-workload${workloads[$idx]}-3m_perthread-${client_thread} ${client_thread} rubble $shard_num $rf ${username}
+            bash eval.sh load ${workloads[$idx]} ${rate[$idx]} load-workload${workloads[$idx]}-100m-${client_thread} ${client_thread} rubble $shard_num $rf ${username}
             sleep 5
-            bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-workload${workloads[$idx]}-3m_perthread-${client_thread} ${client_thread} rubble $shard_num $rf ${username}
+            bash eval.sh run ${workloads[$idx]} ${rate[$idx]} run-workload${workloads[$idx]}-100m-${client_thread} ${client_thread} rubble $shard_num $rf ${username}
 
             # rename outputs
             rm -rf /users/${username}/outputs/*.jpg
             rm -rf /users/${username}/outputs/figures
-            mv /users/${username}/outputs /users/${username}/get_outputs/workload${workloads[$idx]}-3m_perthread-${client_thread}
+            mv /users/${username}/outputs /users/${username}/get_outputs/workload${workloads[$idx]}-100m-${client_thread}
         done
     done
 }
