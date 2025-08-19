@@ -161,9 +161,9 @@ public class ClientThread implements Runnable {
         Random rand = new Random();
 
         long startTimeNanos = System.nanoTime();
-        int lineNumber = 0;
+        int lineNumber = threadid;
         int traceNum = ((CoreWorkload)workload).getTwitterTraceNum();
-
+        
         while (((opcount == 0) || (opsdone < opcount)) && !workload.isStopRequested() && lineNumber < traceNum) {
           String line = ((CoreWorkload)workload).getTwitterTraceLine(lineNumber);
           if (lineNumber % threadcount == threadid) {
