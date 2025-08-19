@@ -164,7 +164,6 @@ public class ClientThread implements Runnable {
         int lineNumber = 0;
 
         while (((opcount == 0) || (opsdone < opcount)) && !workload.isStopRequested()) {
-          System.out.println("lineNumber: " + lineNumber);
           String line = ((CoreWorkload)workload).getTwitterTraceLine(lineNumber);
           if (lineNumber % threadcount == threadid) {
             replayTrace(line, rand);

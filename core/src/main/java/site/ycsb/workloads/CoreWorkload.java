@@ -469,11 +469,12 @@ public class CoreWorkload extends Workload {
         int lineNumber = 0;
         while ((line = br.readLine()) != null) {
           if (lineNumber % 1000000 == 0) {
-            System.out.println(lineNumber);
+            // System.out.println(lineNumber);
           }
           twitterTraceVec.add(line);
           lineNumber++;
         }
+        System.out.println("Twitter Trace Num: " + getTwitterTraceNum());
         br.close();
       } catch (Exception e) {
         e.printStackTrace();
