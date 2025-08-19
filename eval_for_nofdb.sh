@@ -1,8 +1,8 @@
 #!/bin/env bash
 
 # 新增 username
-if [ $# != 3 ]; then
-    echo "Usage: bash eval_for_nofdb.sh shard_num replication_factor username"
+if [ $# != 4 ]; then
+    echo "Usage: bash eval_for_nofdb.sh shard_num replication_factor username is_twitter"
     exit
 fi
 
@@ -12,8 +12,17 @@ shard_num=$1
 rf=$2
 # 新增 username
 username=$3
+# is twitter
+# value: '0' or '1'
+is_twitter=$4
 
-workloads=("a" "b" "c" "d" "f" "g")
+workloads=("twitter")
+# 需要根据情况修改
+twitter_traces_base_path="/mnt/rubbledb/"
+twitter_traces=("cluster15.sort.sample10"
+                "cluster19.sort.sample10"
+                "cluster27.sort.sample10"
+                "cluster31.sort.sample10")
 client_threads=(32)
 
 # r6525 nodes
@@ -88,13 +97,13 @@ check_connectivity() {
     done
 }
 
-function run_fn()
+function run_normal_fn()
 {
     mkdir -p /users/${username}/get_outputs
 
     for client_thread in ${client_threads[@]}; do
         # 修改 recordcount，operationcount 的值
-        for idx in $(seq 0 5)
+        for ((idx=0; idx<${#workloads[@]}; idx++))
         do
             # 3M per thread
             # cnt=$((${client_thread} * 3000000))
@@ -104,9 +113,10 @@ function run_fn()
             sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workload${workloads[$idx]}
             # 修改请求分布
             sed -i "s/requestdistribution=uniform\b/requestdistribution=zipfian/g" workloads/workload${workloads[$idx]}
+
         done
 
-        for idx in $(seq 0 5)
+        for ((idx=0; idx<${#workloads[@]}; idx++))
         do
             # 只做 workloadc
             # if [ "$idx" -ne 2 ]; then
@@ -125,4 +135,37 @@ function run_fn()
     done
 }
 
-run_fn
+function run_twitter_fn()
+{
+    mkdir -p /users/${username}/get_outputs
+
+    for client_thread in ${client_threads[@]}; do
+        # 修改 recordcount，operationcount 的值
+        for ((idx=0; idx<${#twitter_traces[@]}; idx++))
+        do
+            # 50M
+            cnt=50000000
+            sed -i "s/recordcount=[0-9]\+/recordcount=${cnt}/g" workloads/workloadtwitter
+            sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workloadtwitter
+            # 修改请求分布
+            # sed -i "s/requestdistribution=uniform\b/requestdistribution=zipfian/g" workloads/workloadtwitter
+            # 修改 twitter trace file
+            sed -i "s|^twittertrace=.*|twittertrace=${twitter_traces_base_path}${twitter_traces[$idx]}|" workloads/workloadtwitter
+
+            echo "workload: workloadtwitter, trace: ${twitter_traces[$idx]}, rate: ${rate[$idx]} op/sec, client_thread: ${client_thread}, shard_num: ${shard_num}, rf: ${rf}"
+            bash eval.sh run twitter ${rate[$idx]} run-workloadtwitter-${twitter_traces[$idx]}-50m-${client_thread} ${client_thread} rubble $shard_num $rf ${username}
+
+            # rename outputs
+            rm -rf /users/${username}/outputs/*.jpg
+            rm -rf /users/${username}/outputs/figures
+            mv /users/${username}/outputs /users/${username}/get_outputs/workloadtwitter-${twitter_traces[$idx]}-50m-${client_thread}
+        done
+    done
+}
+
+
+if [ "${is_twitter}" -eq 1 ]; then
+    run_twitter_fn
+else
+    run_normal_fn
+fi

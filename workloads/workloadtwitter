@@ -1,4 +1,5 @@
-twittertrace=/mnt/cluster31
+twittertrace=/mnt/rubbledb/cluster31
+
 recordcount=20000000
 operationcount=20000000
 workload=site.ycsb.workloads.CoreWorkload
