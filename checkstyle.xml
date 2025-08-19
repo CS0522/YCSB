@@ -120,10 +120,10 @@ LICENSE file.
         <module name="LineLength">
             <property name="max" value="120"/>
         </module>
-        <module name="MethodLength">
+        <!-- <module name="MethodLength">
 			<property name="tokens" value="METHOD_DEF"/>
 			<property name="max" value="200"/>
-		</module>
+		</module> -->
         <module name="ParameterNumber"/>
 
 

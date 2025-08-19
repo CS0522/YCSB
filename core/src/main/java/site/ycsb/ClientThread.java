@@ -23,7 +23,6 @@ import site.ycsb.workloads.CoreWorkload;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.LockSupport;
-import java.io.FileInputStream;
 import java.util.*;
 
 /**
@@ -159,31 +158,21 @@ public class ClientThread implements Runnable {
     }
     try {
       if (workload.getClass().equals(CoreWorkload.class) && ((CoreWorkload)workload).isTwitterWorkload()) {
-        String trace = ((CoreWorkload)workload).getTwitterTrace();
-        FileInputStream inputStream = new FileInputStream(trace);
-        Scanner sc = new Scanner(inputStream, "UTF-8");
         Random rand = new Random();
 
         long startTimeNanos = System.nanoTime();
         int lineNumber = 0;
 
         while (((opcount == 0) || (opsdone < opcount)) && !workload.isStopRequested()) {
-          if (sc.hasNextLine()) {
-            String line = sc.nextLine();
-            if (lineNumber % threadcount == threadid) {
-              replayTrace(line, rand);
-              opsdone++;
-            }
-            lineNumber++;
+          String line = ((CoreWorkload)workload).getTwitterTraceLine(lineNumber);
+          if (lineNumber % threadcount == threadid) {
+            replayTrace(line, rand);
+            opsdone++;
           }
-
+          lineNumber += threadcount;
           // MODIFIED
           throttleNanos(0);
         }
-
-        sc.close();
-        inputStream.close();
-
         for (int i = 0; i < shardNum; i++) {
           ((DBWrapper)db).sendBatch(true, i);
           ((DBWrapper)db).sendBatch(false, i);

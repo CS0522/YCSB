@@ -22,7 +22,11 @@ import site.ycsb.generator.*;
 import site.ycsb.measurements.Measurements;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
 
 /**
  * The core benchmark scenario. Represents a set of clients doing simple CRUD operations. The
@@ -372,6 +376,7 @@ public class CoreWorkload extends Workload {
   public static final String TWITTER_TRACE_PROPERTY = "twittertrace";
   public static final String TWITTER_TRACE_DEFAULT = "";
   protected String twitterTrace;
+  protected Vector<String> twitterTraceVec = new Vector<>();
 
   public boolean isTwitterWorkload() {
     return twitterTrace != TWITTER_TRACE_DEFAULT;
@@ -379,6 +384,23 @@ public class CoreWorkload extends Workload {
 
   public String getTwitterTrace() {
     return twitterTrace;
+  }
+
+  public int getTwitterTraceNum() {
+    return twitterTraceVec.size();
+  }
+
+  public String getTwitterTraceLine(int lineNumber) {
+    if(lineNumber < twitterTraceVec.size()) {
+      return twitterTraceVec.get(lineNumber);
+    } else {
+      System.err.println("Error: getTwitterTrace, lineNumber " + lineNumber + " is out of range.");
+      return null;
+    }
+  }
+
+  public List<String> getFieldNames() {
+    return fieldnames;
   }
   // [Rubble]
 
@@ -437,6 +459,28 @@ public class CoreWorkload extends Workload {
 
     // Rubble
     twitterTrace = p.getProperty(TWITTER_TRACE_PROPERTY, TWITTER_TRACE_DEFAULT);
+    // 如果是 Twitter workload，将数据全读取到内存中
+    if (isTwitterWorkload()) {
+      try {
+        System.out.println("Loading Twitter Trace......");
+        BufferedReader br = new BufferedReader(new InputStreamReader(
+            new FileInputStream(twitterTrace), StandardCharsets.UTF_8), 16 * 1024 * 1024);
+        String line;
+        int lineNumber = 0;
+        while ((line = br.readLine()) != null) {
+          if (lineNumber % 1000000 == 0) {
+            // System.out.println(lineNumber);
+          }
+          twitterTraceVec.add(line);
+          lineNumber++;
+        }
+        br.close();
+      } catch (Exception e) {
+        e.printStackTrace();
+        e.printStackTrace(System.out);
+        System.exit(0);
+      }
+    }
     // Rubble
 
     fieldcount =
@@ -635,7 +679,13 @@ public class CoreWorkload extends Workload {
     Status status;
     int numOfRetries = 0;
     do {
+      // MODIFIED
+      int prevOpsDone = ((DBWrapper)db).getOpsDone();
       status = db.insert(table, dbkey, values);
+      // MODIFIED
+      while ((prevOpsDone + 1) != ((DBWrapper)db).getOpsDone()) {
+
+      }
       if (null != status && status.isOk()) {
         break;
       }
