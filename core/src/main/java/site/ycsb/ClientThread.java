@@ -162,8 +162,9 @@ public class ClientThread implements Runnable {
 
         long startTimeNanos = System.nanoTime();
         int lineNumber = 0;
+        int traceNum = ((CoreWorkload)workload).getTwitterTraceNum();
 
-        while (((opcount == 0) || (opsdone < opcount)) && !workload.isStopRequested()) {
+        while (((opcount == 0) || (opsdone < opcount)) && !workload.isStopRequested() && lineNumber < traceNum) {
           String line = ((CoreWorkload)workload).getTwitterTraceLine(lineNumber);
           if (lineNumber % threadcount == threadid) {
             replayTrace(line, rand);

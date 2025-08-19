@@ -474,7 +474,7 @@ public class CoreWorkload extends Workload {
           twitterTraceVec.add(line);
           lineNumber++;
         }
-        System.out.println("Twitter Trace Num: " + getTwitterTraceNum());
+        System.out.println("Twitter Trace Requests Num: " + getTwitterTraceNum());
         br.close();
       } catch (Exception e) {
         e.printStackTrace();
