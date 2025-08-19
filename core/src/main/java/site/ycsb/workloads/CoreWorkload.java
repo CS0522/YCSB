@@ -467,9 +467,11 @@ public class CoreWorkload extends Workload {
             new FileInputStream(twitterTrace), StandardCharsets.UTF_8), 16 * 1024 * 1024);
         String line;
         int lineNumber = 0;
+        long maxLoadCount = Math.max(Long.parseLong(p.getProperty(Client.RECORD_COUNT_PROPERTY)),
+            Long.parseLong(p.getProperty(Client.OPERATION_COUNT_PROPERTY)));
         while ((line = br.readLine()) != null) {
-          if (lineNumber % 1000000 == 0) {
-            // System.out.println(lineNumber);
+          if (lineNumber >= maxLoadCount) {
+            break;
           }
           twitterTraceVec.add(line);
           lineNumber++;
