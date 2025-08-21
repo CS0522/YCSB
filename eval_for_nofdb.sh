@@ -19,10 +19,12 @@ is_twitter=$4
 workloads=("twitter")
 # 需要根据情况修改
 twitter_traces_base_path="/mnt/rubbledb/"
-twitter_traces=("cluster15.sort.sample10"
-                "cluster19.sort.sample10"
-                "cluster27.sort.sample10"
-                "cluster31.sort.sample10")
+twitter_traces=("cluster12.sort.sample100"
+                "cluster15.sort.sample100"
+                "cluster19.sort.sample100"
+                "cluster27.sort.sample100"
+                "cluster31.sort.sample100"
+                "cluster37.sort.sample100")
 client_threads=(32)
 
 # r6525 nodes
@@ -143,8 +145,8 @@ function run_twitter_fn()
         # 修改 recordcount，operationcount 的值
         for ((idx=0; idx<${#twitter_traces[@]}; idx++))
         do
-            # 50M
-            cnt=50000000
+            # 1M
+            cnt=1000000
             sed -i "s/recordcount=[0-9]\+/recordcount=${cnt}/g" workloads/workloadtwitter
             sed -i "s/operationcount=[0-9]\+/operationcount=${cnt}/g" workloads/workloadtwitter
             # 修改请求分布
@@ -153,12 +155,12 @@ function run_twitter_fn()
             sed -i "s|^twittertrace=.*|twittertrace=${twitter_traces_base_path}${twitter_traces[$idx]}|" workloads/workloadtwitter
 
             echo "workload: workloadtwitter, trace: ${twitter_traces[$idx]}, rate: ${rate[$idx]} op/sec, client_thread: ${client_thread}, shard_num: ${shard_num}, rf: ${rf}"
-            bash eval.sh run twitter ${rate[$idx]} run-workloadtwitter-${twitter_traces[$idx]}-50m-${client_thread} ${client_thread} rubble $shard_num $rf ${username}
+            bash eval.sh run twitter ${rate[$idx]} run-workloadtwitter-${twitter_traces[$idx]}-1m-${client_thread} ${client_thread} rubble $shard_num $rf ${username}
 
             # rename outputs
             rm -rf /users/${username}/outputs/*.jpg
             rm -rf /users/${username}/outputs/figures
-            mv /users/${username}/outputs /users/${username}/get_outputs/workloadtwitter-${twitter_traces[$idx]}-50m-${client_thread}
+            mv /users/${username}/outputs /users/${username}/get_outputs/workloadtwitter-${twitter_traces[$idx]}-1m-${client_thread}
         done
     done
 }
